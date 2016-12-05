@@ -1,0 +1,16 @@
+\select@language {english}
+\contentsline {section}{Introduction}{3}{section*.2}
+\contentsline {section}{Analysis of Netlight}{3}{section*.3}
+\contentsline {subsection}{Values}{3}{section*.4}
+\contentsline {subsection}{Mission and Vision}{4}{section*.5}
+\contentsline {subsection}{Strategy}{4}{section*.6}
+\contentsline {section}{Strategy Maps}{5}{section*.7}
+\contentsline {subsection}{Financial Perspective}{5}{section*.8}
+\contentsline {subsection}{Customer Perspective}{5}{section*.9}
+\contentsline {subsection}{Internal Process Perspective}{5}{section*.10}
+\contentsline {subsection}{Learning \& Growth Perspective}{6}{section*.11}
+\contentsline {section}{Strategic Themes}{9}{section*.12}
+\contentsline {subsection}{Increase Efficiency of Internal Operations}{9}{section*.13}
+\contentsline {subsection}{Customer Value}{9}{section*.14}
+\contentsline {section}{Discussion}{11}{section*.15}
+\contentsline {section}{Conclusion}{11}{section*.16}

@@ -1,0 +1,323 @@
+\documentclass[11pt]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{xcolor}
+\usepackage{sectsty}
+\usepackage{pdfpages}
+\usepackage[hidelinks]{hyperref}
+\usepackage[top = 100pt, bottom = 100pt, left = 45pt, right = 45pt]{geometry}
+
+
+
+\usepackage{pdflscape}
+
+
+\begin{document}
+\begin{titlepage}
+
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
+
+\center % Center everything on the page
+
+\textsc{\LARGE The Royal Institute of Technology}\\[1.5cm] % Name of your university/college
+\textsc{\Large Artificial Intelligence}\\[0.5cm] 
+\textsc{\large Project}\\[0.5cm] 
+
+\HRule \\[0.4cm]
+{ \huge \bfseries An evaluation of Domain-Independent Heuristics when applied to the Job-Shop Scheduling Problem}\\[0.4cm] % Title of your document
+\HRule \\[1.5cm]
+
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+\emph{Authors:}\\
+Sara \textsc{Engardt} \\% Your name
+Magnus \textsc{Arvidsson}
+\end{flushleft}
+\end{minipage}
+~
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+
+Johan \textsc{Haslum Fredin}  \\
+Simon \textsc{Westerlind}
+% Supervisor's Name
+\end{flushright}
+\end{minipage}\\[2cm]
+
+{\large \today}\\[2cm] % Date, change the \today to a set date if you want to be precise
+
+%----------------------------------------------------------------------------------------
+%	LOGO SECTION
+%----------------------------------------------------------------------------------------
+\begin{minipage}{0.3\textwidth}
+\begin{flushleft}
+\includegraphics[scale=0.1]{kth}\\[1cm] 
+\end{flushleft}
+\end{minipage}
+~
+\begin{minipage}{0.3\textwidth}
+\begin{flushright}
+\includegraphics[scale=0.1]{netlight}
+\end{flushright}
+\end{minipage}
+
+ 
+%----------------------------------------------------------------------------------------
+
+\vfill % Fill the rest of the page with whitespace
+
+\end{titlepage}
+
+\begin{abstract}
+\noindent
+This report investigates the use of domain-independent heuristics when solving a Constraint Satisfaction Problem (CSP). CSP problems quickly becomes complex and creates vast search spaces. The use of a good heuristics can efficiently limit the scope of the problem. Several heuristic functions are evaluated by comparing their performance when solving the classical Job-Shop Scheduling Problem (JSSP). 
+
+
+\end{abstract}
+ \newpage
+ 
+\tableofcontents
+\newpage
+
+\section{Topic}
+The scope of this project is a short study of how different domain-independent heuristics affect the performance of a constraint satisfaction problem (CSP) solver applied to the Job-Shop Scheduling Problem (JSSP). The $n\times m$ JSSP is a sort of scheduling problem, consisting of n jobs to be performed by m machines in a predefined order in the most efficient way.
+\newline\newline
+Constraint based methods have proven to be a good way to encode and solve scheduling problems. However, representing these problems by inequality constraints creates large search space, resulting in complex problems that are hard to solve exact. One way of handling this is by the use of heuristic functions to utilize more of the information represented in the problem definition to reduce the size of the search space.
+\newline\newline
+In this project we have focused on the classical 10x10 JSSP as defined by Muth and Thompson \cite{Muth}. The problem states that ten jobs are to be performed on ten different machines. These jobs require the use of the machines in sequential order and with varying time span. Even though the 10x10 problem might seem small it has proven to be difficult to solve, or as Yamada and Nakano put it:
+ \newline\newline
+ 
+  \textit{``The JSSP is not only NP-hard , but it is one of the worst members in the class. An indication of this is given by the fact that one 10 × 10 problem formulated by Muth and Thompson [...] remained unsolved for over 20 years.”} \cite{Yamada}
+
+\section{Related Work}
+The inspiration and formulation of the problem was found in the work done by Yamada and Nakano. They study the different methods that have been used to tackle the JSSP problem and how well they perform on different problem formulations. Furthermore it describes how the problem constraints can be represented graphically in the form of a constraint graph. \newline\newline
+The JSSP is one that has been widely studied. There are several articles with proposed solutions and methods, a couple of these have been of extra interest for us when working with the problem. The article “Variables and Value Ordeting Heuristics for the Job Shop scheduling problem Constraint satisfaction problem” \cite{Sadeh} by Sadeh and Fox studies and compares a wide selection of heuristics. One heuristic they evaluate is the Minimum Remaining Values (MRV) heuristic, which we have also chosen to implement. The authors measures the performance according to the following three criteria, search efficiency, number of experiments solved and average CPU time. The search efficiency was defined as the number of operations to be scheduled over the number of search states that were explored. The number of experiments solved was a measure of how many solutions were found in under 500 search states each. Lastly, CPU time represents the average time required to find a solution.This study served as a guideline for us on how to compare our heuristics.
+\newline\newline
+The book “Artificial intelligence - a modern approach”\cite{Russel} has a chapter about constraint satisfaction problems which was an important resource during this project. It provided us with fundamental theoretic ground, for example how to encode the JSSP as a CSP. It also provided us with suggestions of heuristics for the JSSP, such as the Maximum degree heuristics (MD) and the Least-constraining-value (LCV) heuristic.
+
+
+
+\section{Constraints}
+\subsection{Graphic representation}
+The goal of the JSSP is to find a solution that minimizes the makespan time, which is the duration between the start of the first job to the completion of every job, while complying with the predefined constraints. In other words to minimizes the amount of time from the start of the first task to the finish of the last for a given test case. In this case the constraints are the order in which operations are to be carried out and what operations can be performed simultaneously. This can be represented in a constraint graph as in figure 1 below. The graph consists of two types of edges, representing conjunctive and disjunctive constraints respectively. Figure 1 show what operations are to be carried out in what order, and which operations are not allowed to be concurrent.
+
+\begin{figure}[h!tp]
+\hspace*{50pt}\includegraphics[scale=0.22]{flowgraph}
+\caption{\label{flowgraph}Example of a constraint graph \cite{Yamada}.}
+\end{figure}
+\noindent
+\subsection{Mathematical representation}
+These constraints can also be represented mathematically. To do this, the following notation will have to be introduced. The $n \times m$ JSSP consists of a set of $n$ jobs $J_{j}$, $1\leq j\leq n$ , which is to be processed on a set of m machines ${M_r}$, where $1\leq r\leq m$. Each job must be processed in a predefined sequence on each machine, the processing of job ${J_j}$ on machine $M_{r}$ is called the operation $O_{j}^r$. During the processing time  $p_{j}^r$ (the time from the start time of the operation plus the duration of the job), the operation $O_{j}^r$ requires exclusive use of machine $M_{r}$. The objective of the JSSP is to find a set of start times for each operation $c_{j}^r$, $1\leq j\leq n,1\leq r\leq m$, that satisfies these constraints. The time between the start time of the first operation and the end time of the last operation is called the makespan L. When solving the JSSP the aim is find the schedule that minimizes L. 
+\newline\newline
+We are now ready to construct our constraints. Once again the constraints can be divided into conjunctive and disjunctive. Conjunctive constraints simply restrain in what order operations belonging to the same job are allowed to be completed. This can be formulated as requiring the start time of the following operation to be later than the start time of the previous operation and its duration. If operation l follows operation k in job j, the constraint follows:
+\newline
+
+$startTime(O_{j}^k) + p_{j}^k < startTime(O_{j}^l)$
+\newline\newline
+The disjunctive constraints can be derived from the restriction that only one operation can be carried out by a machine at any time, thus requiring two operations competing for the same resource to start at the earliest when the other has finished. So for operation $O_{j}^r$ of job j, requiring machine $M_{r}$ and $O_{i}^r$ of job i also requiring machine r the constraint can be described as:
+\newline
+
+$startTime(O_{j}^r) + p_{j}^r < startTime(O_{i}^r)$ \\
+
+\:\:\textit{or}\\
+			
+$startTime(O_{i}^r) + p_{i}^r < startTime(O_{j}^r)$
+\newline
+ \section{Algorithms and heuristics}
+\subsection{Depth First Branch and Bound}
+The aforementioned constraints will eliminate many of the possible combinations of operation orders and limit the space of potential solutions that needs to be searched. This search space is explored with the use of a Depth-First Branch-and-Bound algorithm (DFBnB). The DFBnB algorithm keeps track of the lowest-cost solution found so far. This enables the DFBnB to prune part of the search space, since partial solutions with makespan equal or greater the the lowest-cost solution are unnecessary to explore. Because of this pruning property, a smart choice in which order child nodes are explored can increase the performance of the algorithm significantly. This ranking of child nodes is done with the help of heuristic functions. When solving CSPs, heuristics are often divided into two categories, value- and variable ordering heuristics. This report will explore the different heuristics found below and evaluate their performance.
+
+\subsection{Value heuristics}
+
+In the JSSP the value corresponds to choosing which of the possible start times[alt. operations*] to schedule. A short description of the value heuristics that we have chosen to implement is given here.
+
+\subsubsection{Least Constraining Value}
+
+The least constraining value heuristic prioritizes the operation which restrains the scheduling of the remaining operations the least. The intention is to cause the least possible conflicts, thus quickly finding a possible solution. When implementing this heuristics only the operations incident to the current operation in the constraint graph need to be accounted for, since this operation only affects the connected operations.
+
+
+
+\subsubsection{Minimum Value}
+
+The minimum value heuristic is a straightforward heuristic that chooses the smallest value, in the JSSP this is the value corresponding to the shortest operation-duration time. 
+
+
+\subsection{Variable heuristics}
+In the JSSP choosing a variable corresponds to choosing what operation to perform. A short description of the variable heuristics that we have chosen to implement is given here.
+
+
+\subsubsection{Maximum Degree}
+
+The Maximum Degree heuristics simply ranks the operations by their degree in the constraint graph. By choosing the operation with the largest degree or in other words the operations that is the most constrained, the most complex operations to schedule are prioritized. This intendeds to create a conflict as early as possible, thus eliminating large portions of the search space. 
+
+\subsubsection{Minimum Remaining Values}
+
+The minimum remaining values heuristics, also called the “most constrained variable” heuristics, prefers the variable choice which have the fewest allowed choices left. This “fail-first” approach will be more likely to cause a constraint violation sooner rather than later, thus pruning the tree earlier and thereby minimizing the search time\cite{Russel}.
+
+
+\subsubsection{Slack variable heuristic}
+In Operational research there is a term called slack which indicates how much you can move a task without imposing a delay on the rest of the project. In “Heuristic Methods for Solving Job-Shop Scheduling Problems" \cite{Garrido}, the authors define the slack probability, a measure taking into account the latest possible start time, earliest possible start time and the duration of the task in order to design a heuristic which chooses the most constrained variable first. We took inspiration from them and defined the slack value as the the duration of each job divided by the current size of the corresponding start time domain size. The idea is that, apart from start time domain size, the duration of a job will also affect how constrained it is.
+\newline\newline
+Note that this is not a domain independent heuristic since we take the specifics of the problem into consideration, i.e. the durations. It is included for comparison of any advantages of using specialized heuristics for specific problems.
+
+\subsection{Random choice Heuristic}
+As a reference point we will compare our heuristics with a complete random choice. This means that we randomly chose the variable and value from the given search space*.
+
+ 
+
+
+
+\section{Case study}
+
+
+\subsection{Description}
+
+We have used the open source CSP solver “Gecode”\cite{Gecode} to encode the problem as described in previous sections. We implemented the heuristics in the previous section, except for the random heuristic where we used the built-in Gecode functions. We combined the two variable heuristics with the three value heuristics, giving us six test cases plus one reference case of random choices. We tested each combination of heuristics on ten random test cases. When comparing the performance of the heuristics we compare the average makespan of the proposed optimal solution, the efficiency in terms of how many nodes in the search tree that was visited and failed for the first and for the optimal solution and the average time it took to find the first and optimal solution (CPU time). Failed nodes in this case is the number of times we have either pruned the search tree or come to a dead-end in the search tree. We have also examined the ratio of the best CPU time and number of nodes visited for the best solution. This ratio gives us an indicator of how much time is needed by the heuristics at every node. The results are shown in table 1. 
+
+
+
+
+\subsection{Results}
+The following table shows the performance of the heuristics according to the criteria discussed above. The results presented here is the mean of all ten testcases.
+
+\begin{center}
+    \begin{tabular}{ | p{1.8cm} | p{1.6cm} | p{2.2cm} | p{2.2cm} | p{2cm} | p{2cm} | p{1.8cm} | p{1.8cm} | p{1.8cm} |}
+    \hline
+    \textbf{\newline\newline\newline Heuristics} & Shortest makespan & CPU time required to find best solution (µs) & CPU time required to find first solution (µs) & CPU time per Node (µs) & Nodes visited for best solution & Nodes visited for first solution & Nodes failed for best solution\\ \hline
+    
+    MV\newline \&\newline MRV
+ &713
+ &98189
+ &134
+ &1.298
+ &681
+ &105
+ &141
+ \\ \hline
+    MV\newline \&\newline MD
+    
+&728
+&103493
+&143
+&2.134
+&864
+&67
+&22
+
+
+ \\ \hline
+  MV\newline  \&\newline Slack  
+   
+&695
+&167786
+&152
+&1.505  
+&503
+&101
+&139
+ 
+ \\ \hline
+    
+    LCV\newline  \&\newline MRV
+    
+&845
+&25205200
+&223
+&4.129
+&4973
+&54
+&811
+
+ \\ \hline
+    
+    LCV\newline  \&\newline MD
+ 
+&878
+&39168458
+&165
+&3.235
+&4627
+&51
+&282
+
+
+ \\ \hline
+  LCV\newline  \&\newline Slack  
+   
+&883
+&44681357
+&148
+&3.083  
+&4708
+&48
+&908
+ \\ \hline
+    Random choices  
+   
+&811
+&50618
+&138
+&1.339
+&3271
+&103
+&947
+
+ \\ \hline
+    \end{tabular}
+\end{center}
+
+\section{Discussion}
+\subsection{Comparison of value heuristics}
+First of all we can see that for all variable ordering heuristics, the LCV heuristic finds solutions with longer makespans than the other heuristics, including the random one. This is to be expected when considering the logic behind the heuristic, as it only tries to minimize conflict. This is easily done by just spreading out the operations, and thereby finding longer makespans. We can see that is does find a first solution after visiting only about 50 nodes for each variable heuristic. It does however take more time per node and is thus not the fastest when it comes to CPU-time and finding the first solution. It is not surprising that the LCV heuristic takes more time per node as there is much overhead involved in the computation. Before choosing value, the heuristic has to “look forward” and, for every value, check how much the other variables would be constrained. 
+\newline\newline
+The MV heuristic on the other hand finds solutions with much shorter makespan for all three variable ordering heuristics. An interesting difference between the two value heuristics to note is the big difference in failed nodes. The MV heuristic is much better at pruning at an early stage due to finding short makespans straight away, leading to large branches of the search space being pruned. The LCV heuristic on the other hand prunes further down as it is not focused on finding fast solutions, leading to smaller fractions of branches being pruned but at a higher frequency.
+
+\subsection{Comparison of variable heuristics}
+
+Given the same value heuristic, the MD and MRV variable heuristics performs pretty similar. The makespans found by the MRV are on average marginally smaller than for the MD heuristic.The MD heuristic on the other hand consistently has fewer failed nodes, implying more efficient pruning. Interesting to note is that the domain-independent MRV heuristic outperforms both other variable heuristics, including the domain-dependent slack heuristics, in terms of efficient pruning.
+\newline\newline
+When combined with the MV heuristics, the slack heuristic yields the lowest average makespan. It is not surprising that the domain-dependent heuristic is the one to be behind the fastest solution. It is however worth to note that it performs the worst in terms of makespan when combined with the LCV heuristic, even worse than the random choice. 
+
+\subsection{Conclusion}
+
+To conclude the discussion we can note that the MV heuristic outperforms the LCV heuristic in almost every comparison. The overall best performance is obtained when combining the MV heuristic with the domain-dependent slack heuristic. If we want to stick to domain-independent variable heuristics, the MRV heuristic yields marginally shorter makespans and the MD heuristic prunes more efficiently, making it hard to say which one is better.
+
+\section{Summary}
+
+
+
+
+\newpage
+\addcontentsline{toc}{section}{References}
+
+\begin{thebibliography}{11}
+
+
+
+
+
+\bibitem{Muth} Muth, F. & Thompson, L. (1963). Industrial scheduling. Prentice-Hall, Englewood Cliffs, N.J
+
+
+\bibitem{Yamada} Yamada, (1997). [online] Available at: \url{ http://www.kecl.ntt.co.jp/as/members/yamada/galbk.pdf} [Accessed 7 Oct. 2016].
+
+
+\bibitem{Sadeh} Sadeh, N. & Fox, M. (1995). VARIABLE AND VALUE ORDERING HEURISTICS FOR THE JOB SHOP SCHEDULING CONSTRAINT SATISFACTION PROBLEM. Carnegie Mellon University, Pittsburgh, USA
+
+\bibitem{Russel} Russel, S. & Norvig, P. (1995). Artificial Intelligence: A Modern Approach, 3rd ed. pp 216-217. Prentice-Hall, Upper Saddle River, New Jersey, USA
+
+
+\bibitem{Garrido}A. Garrido, M. A. Salido, F. Barber & M. A. López (2007) [online] Available at: \url{ http://users.dsic.upv.es/~agarridot/index_archivos/papers/garrido00b.pdf} [Accessed 14 Oct. 2016].
+
+\bibitem{Gecode} Gecode, (2016). [online] Available at: \url{Gecode.org} [Accessed 8 Oct. 2016].
+
+
+
+\end{thebibliography}
+\end{document}
